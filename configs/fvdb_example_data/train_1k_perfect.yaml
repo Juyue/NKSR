@@ -1,0 +1,19 @@
+include_configs:
+  - data.yaml
+
+name: 'fvdb_example_data/perfect_1k'
+
+voxel_size: 0.02
+kernel_dim: 16
+
+interpolator:
+  n_hidden: 2
+  hidden_dim: 32
+
+# voxel_size: 0.015
+# kernel_dim: 16
+# feature: none
+
+# interpolator:
+#   n_hidden: 2
+#   hidden_dim: 32
