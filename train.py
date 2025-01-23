@@ -257,7 +257,6 @@ if __name__ == '__main__':
         accumulate_grad_batches=model_args.accumulate_grad_batches)
     net_module = importlib.import_module("models." + model_args.model).Model
     net_model = net_module(model_args)
-
     if is_rank_zero():
         print(" >>>> ======= MODEL HYPER-PARAMETERS ======= <<<< ")
         print(OmegaConf.to_yaml(net_model.hparams, resolve=True))

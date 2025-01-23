@@ -40,20 +40,17 @@ class FVDBExampleDataDataset(RandomSafeDataset):
         data = {}
         input_data = torch.load(self.files[data_id])
 
-        input_points = input_data['points']
-        input_normals = input_data['normals'].jdata
-    
         if DS.TARGET_NORMAL in self.spec:
-            data[DS.TARGET_NORMAL] = input_normals
+            data[DS.TARGET_NORMAL] = input_data['normals']
     
         if DS.INPUT_PC in self.spec:
-            data[DS.INPUT_PC] = input_points
+            data[DS.INPUT_PC] = input_data['points']
                 
         if DS.GT_DENSE_PC in self.spec:
-            data[DS.GT_DENSE_PC] = input_points
+            data[DS.GT_DENSE_PC] = input_data['ref_xyz']
 
         if DS.GT_DENSE_NORMAL in self.spec:
-            data[DS.GT_DENSE_NORMAL] = input_normals
+            data[DS.GT_DENSE_NORMAL] = input_data['ref_normal']
         
         if DS.SHAPE_NAME in self.spec:
             data[DS.SHAPE_NAME] = shape_name
@@ -98,11 +95,12 @@ if __name__ == "__main__":
         spec=spec,
         resolution=128,
     )
-    _visualize_dataset(dataset_128)
+    x = dataset_128[0]
+    # _visualize_dataset(dataset_128)
 
     dataset_512 = FVDBExampleDataDataset(
         onet_base_path=root_dir,
         spec=spec,
         resolution=512,
     )
-    _visualize_dataset(dataset_512)
+    # _visualize_dataset(dataset_512)

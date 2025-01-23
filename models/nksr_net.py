@@ -21,6 +21,7 @@ from pycg import exp, vis
 from dataset.base import DatasetSpec as DS, list_collate
 from models.base_model import BaseModel
 from pycg.isometry import ScaledIsometry
+from fvdb import JaggedTensor
 
 
 # Cache SVH during training, as backward also needs them.
@@ -69,6 +70,12 @@ class Model(BaseModel):
 
         if self.hparams.runtime_visualize:
             vis.show_3d([vis.pointcloud(input_xyz, normal=feat)], enc_svh.get_visualization())
+
+        import pdb; pdb.set_trace()
+
+        input_xyz = JaggedTensor([input_xyz])
+        if feat is not None:
+            feat = JaggedTensor([feat])
 
         feat = self.network.encoder(input_xyz, feat, enc_svh, 0)
         feat, dec_svh, udf_svh = self.network.unet(
@@ -170,16 +177,17 @@ class Model(BaseModel):
             depth=self.hparams.tree_depth,
             device=self.device
         )
+        # import pdb; pdb.set_trace()
 
-        if self.hparams.adaptive_policy.method == "normal":
-            gt_svh.build_adaptive_normal_variation(
-                ref_xyz, ref_normal,
-                tau=self.hparams.adaptive_policy.tau,
-                adaptive_depth=self.hparams.adaptive_depth
-            )
-        else:
-            # Not recommended, removed
-            raise NotImplementedError
+        # if self.hparams.adaptive_policy.method == "normal":
+        #     gt_svh.build_adaptive_normal_variation(
+        #         ref_xyz, ref_normal,
+        #         tau=self.hparams.adaptive_policy.tau,
+        #         adaptive_depth=self.hparams.adaptive_depth
+        #     )
+        # else:
+        #     # Not recommended, removed
+        #     raise NotImplementedError
 
         out['gt_svh'] = gt_svh
         return gt_svh
@@ -231,6 +239,7 @@ class Model(BaseModel):
             gc.collect()
 
         out = {'idx': batch_idx}
+        import pdb; pdb.set_trace()
         if not self.should_use_pd_structure(is_val):
             self.compute_gt_svh(batch, out)
 
