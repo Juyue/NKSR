@@ -14,6 +14,7 @@ import torch
 from dataset.base import DatasetSpec as DS
 from dataset.base import RandomSafeDataset
 import polyscope as ps
+from nksr import NKSRNetwork, SparseFeatureHierarchy
 
 class FVDBExampleDataDataset(RandomSafeDataset):
     def __init__(self, onet_base_path, spec, resolution, random_seed=0, skip_on_error=False, **kwargs):
@@ -95,12 +96,12 @@ if __name__ == "__main__":
         spec=spec,
         resolution=128,
     )
-    x = dataset_128[0]
-    # _visualize_dataset(dataset_128)
+
+    _visualize_dataset(dataset_128)
 
     dataset_512 = FVDBExampleDataDataset(
         onet_base_path=root_dir,
         spec=spec,
         resolution=512,
     )
-    # _visualize_dataset(dataset_512)
+    _visualize_dataset(dataset_512)

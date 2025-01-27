@@ -135,30 +135,30 @@ class BaseModel(pl.LightningModule):
         raise NotImplementedError
 
     def training_step(self, *args, **kwargs):
-        try:
-            return self.train_val_step(is_val=False, *args, **kwargs)
-        except RuntimeError:
-            # Compare to post-mortem, this would allow training to continue...
-            exp.logger.warning(f"Training-step Runtime Error. Skipping.")
-            traceback.print_exc()
-            gc.collect()
-            torch.cuda.empty_cache()
-            self.num_oom += 1.0
-            self.log("num_oom", self.num_oom)
-            return None
+        # try:
+        return self.train_val_step(is_val=False, *args, **kwargs)
+        # except RuntimeError:
+        #     # Compare to post-mortem, this would allow training to continue...
+        #     exp.logger.warning(f"Training-step Runtime Error. Skipping.")
+        #     traceback.print_exc()
+        #     gc.collect()
+        #     torch.cuda.empty_cache()
+        #     self.num_oom += 1.0
+        #     self.log("num_oom", self.num_oom)
+        #     return None
 
     def validation_step(self, *args, **kwargs):
-        try:
-            return self.train_val_step(is_val=True, *args, **kwargs)
-        except RuntimeError:
-            # Compare to post-mortem, this would allow training to continue...
-            exp.logger.warning(f"Validation-step Runtime Error. Skipping.")
-            traceback.print_exc()
-            gc.collect()
-            torch.cuda.empty_cache()
-            self.num_oom += 1.0
-            self.log("num_oom", self.num_oom)
-            return None
+        # try
+        return self.train_val_step(is_val=True, *args, **kwargs)
+        # except RuntimeError:
+        #     # Compare to post-mortem, this would allow training to continue...
+        #     exp.logger.warning(f"Validation-step Runtime Error. Skipping.")
+        #     traceback.print_exc()
+        #     gc.collect()
+        #     torch.cuda.empty_cache()
+        #     self.num_oom += 1.0
+        #     self.log("num_oom", self.num_oom)
+        #     return None
 
     def on_before_overfit(self, batch):
         pass

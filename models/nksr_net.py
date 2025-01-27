@@ -71,13 +71,12 @@ class Model(BaseModel):
         if self.hparams.runtime_visualize:
             vis.show_3d([vis.pointcloud(input_xyz, normal=feat)], enc_svh.get_visualization())
 
-        import pdb; pdb.set_trace()
 
-        input_xyz = JaggedTensor([input_xyz])
+        input_xyz_jagged = JaggedTensor([input_xyz])
         if feat is not None:
             feat = JaggedTensor([feat])
 
-        feat = self.network.encoder(input_xyz, feat, enc_svh, 0)
+        feat = self.network.encoder(input_xyz_jagged, feat, enc_svh, 0)
         feat, dec_svh, udf_svh = self.network.unet(
             feat, enc_svh,
             adaptive_depth=self.hparams.adaptive_depth,
@@ -95,6 +94,7 @@ class Model(BaseModel):
             SVH_CACHE.append([enc_svh, dec_svh, udf_svh])
 
         if self.hparams.geometry == 'kernel':
+            import pdb; pdb.set_trace()
             output_field = KernelField(
                 svh=dec_svh,
                 interpolator=self.network.interpolators,
@@ -104,15 +104,18 @@ class Model(BaseModel):
             if self.hparams.solver_verbose:
                 output_field.solver_config['verbose'] = True
 
-            normal_xyz = torch.cat([dec_svh.get_voxel_centers(d) for d in range(self.hparams.adaptive_depth)])
-            normal_value = torch.cat([feat.normal_features[d] for d in range(self.hparams.adaptive_depth)])
+            normal_xyz = torch.cat([dec_svh.get_voxel_centers(d).jdata for d in range(self.hparams.adaptive_depth)])
+            normal_xyz_jagged = JaggedTensor([normal_xyz])
+            normal_value = torch.cat([feat.normal_features[d].jdata for d in range(self.hparams.adaptive_depth)])
+            normal_value_jagged = JaggedTensor([normal_value])
 
             normal_weight = self.hparams.solver.normal_weight / normal_xyz.size(0) * \
                 (self.hparams.voxel_size ** 2)
+            import pdb; pdb.set_trace()
             output_field.solve_non_fused(
-                pos_xyz=input_xyz,
-                normal_xyz=normal_xyz,
-                normal_value=-normal_value,
+                pos_xyz=input_xyz_jagged,
+                normal_xyz=normal_xyz_jagged,
+                normal_value=-normal_value_jagged,
                 pos_weight=self.hparams.solver.pos_weight / input_xyz.size(0),
                 normal_weight=normal_weight,
                 reg_weight=1.0
@@ -127,6 +130,7 @@ class Model(BaseModel):
 
         else:
             raise NotImplementedError
+        import pdb; pdb.set_trace()
 
         if self.hparams.udf.enabled:
             mask_field = NeuralField(
@@ -177,17 +181,17 @@ class Model(BaseModel):
             depth=self.hparams.tree_depth,
             device=self.device
         )
-        # import pdb; pdb.set_trace()
 
-        # if self.hparams.adaptive_policy.method == "normal":
-        #     gt_svh.build_adaptive_normal_variation(
-        #         ref_xyz, ref_normal,
-        #         tau=self.hparams.adaptive_policy.tau,
-        #         adaptive_depth=self.hparams.adaptive_depth
-        #     )
-        # else:
-        #     # Not recommended, removed
-        #     raise NotImplementedError
+        if self.hparams.adaptive_policy.method == "normal":
+            gt_svh.build_point_splatting(ref_xyz)
+            # gt_svh.build_adaptive_normal_variation(
+            #     ref_xyz, ref_normal,
+            #     tau=self.hparams.adaptive_policy.tau,
+            #     adaptive_depth=self.hparams.adaptive_depth
+            # )
+        else:
+            # Not recommended, removed
+            raise NotImplementedError
 
         out['gt_svh'] = gt_svh
         return gt_svh
@@ -239,7 +243,6 @@ class Model(BaseModel):
             gc.collect()
 
         out = {'idx': batch_idx}
-        import pdb; pdb.set_trace()
         if not self.should_use_pd_structure(is_val):
             self.compute_gt_svh(batch, out)
 
